@@ -10,25 +10,34 @@ import sys
 
 parser = argparse.ArgumentParser(description='Scrape the Indianapolis Citizens Access Portal')
 parser.add_argument('-o', '--output', help='the filename to write the csv data to', required=True)
+parser.add_argument('-i', '--input', help='the txt file to read file names from', required=False)
 args = parser.parse_args()
 
 csvFile = args.output
 fileWriter = csv.writer(open(csvFile, 'wb'), dialect='excel')
 
-htmlFiles = glob.glob('*.html')
+if args.input:
+	inputFileName = args.input
+	inputFile = open(args.input, 'r')
+	htmlFiles2 = inputFile.read()
+	htmlFiles = htmlFiles2.split('\n') 
+else:
+	htmlFiles = glob.glob('*.html')
+	htmlFiles.sort()	
 totalSize = len(htmlFiles)
 counter = 0
 lxmlErrors = 0
 errorMessages = 0
 indexErrors = 0
-htmlFiles.sort()	
+
 fileWriter.writerow(['Parcel Number', 'Case Number'])
 
 print "Analysing {0} files, writing to {1}".format(totalSize, csvFile)
 
 for htmlFile in htmlFiles:
 	counter = counter + 1
-	fileName = open(htmlFile, 'r')
+	try: fileName = open(htmlFile, 'r')
+	except: continue
 	html = fileName.read()
 	try: 
 		tree = lxml.html.fromstring(html)

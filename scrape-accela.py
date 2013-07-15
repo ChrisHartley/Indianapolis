@@ -9,7 +9,7 @@ import os
 import argparse
 
 parser = argparse.ArgumentParser(description='Scrape the Indianapolis Citizens Access Portal')
-parser.add_argument('-c', '--casetype', help='the case or permit prefix', required=True, choices=['TRA', 'DEM', 'REP', 'VBO', 'HIN', 'HSG'])
+parser.add_argument('-c', '--casetype', help='the case or permit prefix', required=True, choices=['TRA', 'DEM', 'REP', 'VBO', 'HIN', 'HSG', 'STR'])
 parser.add_argument('-r', '--range', nargs=2, type=int, help="the starting and ending range to scrape", required=True)
 parser.add_argument('-y', '--year', type=int, help='two digit year to scrape', required=True)
 args = parser.parse_args()
