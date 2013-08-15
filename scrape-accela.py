@@ -10,15 +10,21 @@ import argparse
 
 parser = argparse.ArgumentParser(description='Scrape the Indianapolis Citizens Access Portal')
 parser.add_argument('-c', '--casetype', help='the case or permit prefix', required=True, choices=['TRA', 'DEM', 'REP', 'VBO', 'HIN', 'HSG', 'STR'])
-parser.add_argument('-r', '--range', nargs=2, type=int, help="the starting and ending range to scrape", required=True)
+parser.add_argument('-r', '--range', nargs='*', type=int, help="the starting and ending range to scrape", required=False)
 parser.add_argument('-y', '--year', type=int, help='two digit year to scrape', required=True)
 args = parser.parse_args()
 
 caseType = args.casetype
 caseYear = args.year
-caseRange = range(args.range[0],args.range[1])
+try:
+	caseRange = range(args.range[0],args.range[1]+1)
+except:
+	try:
+		caseRange = range(args.range[0],99999)
+	except:
+		caseRange = range(1,99999)
 
-
+print "" + str(caseRange[0]) + "..." + str(caseRange[-1])
 # Set up cookies to work like regular browser and access entry URL to get set up properly
 cj = cookielib.CookieJar()
 opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
@@ -36,6 +42,11 @@ for case in caseRange:
 			print "URL error"
 			print url
 		html = f.read()
+	# <span id="ctl00_PlaceHolderMain_systemErrorMessage_lblMessageTitle" class="ACA_Show">An error has occurred.</span>
+		isError = string.find(html, '<span id="ctl00_PlaceHolderMain_systemErrorMessage_lblMessageTitle" class="ACA_Show">An error has occurred.</span>')	
+		if (isError != -1):
+			print "error detected, ending"
+			break
 		file = open(fileName, "w")	
 		file.write(html)
 		print "written"
