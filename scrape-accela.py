@@ -9,7 +9,7 @@ import os
 import argparse
 
 parser = argparse.ArgumentParser(description='Scrape the Indianapolis Citizens Access Portal')
-parser.add_argument('-c', '--casetype', help='the case or permit prefix', required=True, choices=['TRA', 'DEM', 'REP', 'VBO', 'HIN', 'HSG', 'STR'])
+parser.add_argument('-c', '--casetype', help='the case or permit prefix', required=True, choices=['TRA', 'DEM', 'REP', 'VBO', 'HIN', 'HSG', 'STR', 'HWG'])
 parser.add_argument('-r', '--range', nargs='*', type=int, help="the starting and ending range to scrape", required=False)
 parser.add_argument('-y', '--year', type=int, help='two digit year to scrape', required=True)
 args = parser.parse_args()
@@ -25,13 +25,17 @@ except:
 		caseRange = range(1,99999)
 
 print "" + str(caseRange[0]) + "..." + str(caseRange[-1])
+
 # Set up cookies to work like regular browser and access entry URL to get set up properly
 cj = cookielib.CookieJar()
 opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
 first = opener.open("http://www.indy.gov/eGov/City/DCE/Pages/Citizen%20Access%20Portal.aspx")
-
+errorCount = 0
 # Step through all cases
 for case in caseRange:
+	if (errorCount > 9):
+		print str(errorCount) + " consecutive errors detected, assuming we've reached the last record or the system is broken, either way stop."
+		break
 	fileName = caseType +str(caseYear)+'-'+string.zfill(case, 5)+'.html'
 	print "File name: ", fileName,
 	if not (os.path.isfile(fileName)):
@@ -45,13 +49,15 @@ for case in caseRange:
 	# <span id="ctl00_PlaceHolderMain_systemErrorMessage_lblMessageTitle" class="ACA_Show">An error has occurred.</span>
 		isError = string.find(html, '<span id="ctl00_PlaceHolderMain_systemErrorMessage_lblMessageTitle" class="ACA_Show">An error has occurred.</span>')	
 		if (isError != -1):
-			print "error detected, ending"
-			break
+			errorCount = errorCount + 1
+			print "error detected, current count: " + str(errorCount)
+			continue
 		file = open(fileName, "w")	
 		file.write(html)
 		print "written"
 	else:
 		print "skipped"
+	errorCount = 0 # reset errorCount to 0 since we're on a good record.
 
 #	tree = lxml.html.fromstring(html)
 #	caseNumber = tree.xpath('//span[@id="ctl00_PlaceHolderMain_lblPermitNumber"]/text()')
